@@ -319,13 +319,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .results::-webkit-scrollbar, .tabs::-webkit-scrollbar, .aisles::-webkit-scrollbar, .cards::-webkit-scrollbar { display: none; }
 .show-results .results { opacity: 1; visibility: visible; transform: none; transition: opacity .2s var(--ease-io), transform .34s var(--ease-out), visibility 0s; }
 .show-results .content, .show-results .suggest { opacity: 0; visibility: hidden; }
-.res-head { padding-top: 0; display: flex; flex-direction: column; gap: 16px; }
 
 /* parent tabs: activity types (699:26679) */
 .tabs {
-  position: relative; display: flex; gap: 24px; padding: 12px 16px 0; box-shadow: inset 0 -1px 0 #e8e8e8;   /* Figma's inside stroke: 52 tall */
+  position: relative;
+  display: flex; gap: 24px; padding: 12px 16px 0;
   overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
 }
+/* the pinned wrapper carries the divider and the glass (a backdrop-filter on the scrolling row itself doesn't render) */
+.tabbar { position: sticky; top: 0; z-index: 3;            /* under the floating search field (the scroller's padding-top = --hdr offsets sticky) */
+  box-shadow: inset 0 -1px 0 #e8e8e8;                       /* Figma's inside stroke: 52 tall */
+  background-color: transparent; transition: background-color .2s var(--ease-io); }
 .tab {
   flex: none; height: 40px; display: flex; flex-direction: column; align-items: center;
   font-weight: 500; font-size: 15px; line-height: 24px; color: var(--content-tertiary); white-space: nowrap;
@@ -334,11 +338,21 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .tab span { display: block; height: 24px; line-height: 28px; }
 .tab.on { color: var(--content-primary); font-weight: 700; }
 .tab.on span { line-height: 24px; }
-.tab-bar { position: absolute; bottom: 0; height: 2px; background: #000; left: 0; width: 0; pointer-events: none;
+.tab-bar { position: absolute; bottom: 0; z-index: 1; height: 2px; background: #000; left: 0; width: 0; pointer-events: none;
   transition: transform .36s var(--ease-out), width .36s var(--ease-out); }
 
 /* child chips: the activity type's aisles (699:26690) */
-.aisles { display: flex; gap: 12px; padding: 0 16px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; min-height: 44px; }
+.aisles { display: flex; gap: 12px; padding: 0 16px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; min-height: 44px; margin-top: 16px; }
+
+/* ---------- scroll-edge glass + quick-return chips ---------- */
+/* the glass: white 80 % + a heavy backdrop blur (24) so what passes under it stays a soft wash; transparent at the
+   top of a page, fades in once content passes under */
+.topglass { position: absolute; left: 0; right: 0; top: 0; height: var(--hdr); z-index: 5; pointer-events: none;
+  background: rgba(255, 255, 255, .8); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+  opacity: 0; transition: opacity .2s var(--ease-io); }
+.scrolled .topglass { opacity: 1; }
+.scrolled .tabbar { background-color: rgba(255, 255, 255, .8); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+/* the aisle chips simply scroll away under the pinned tabs */
 .aisle {
   flex: none; height: 44px; padding: 0 7px; border-radius: 999px;
   background: var(--surface-secondary); border: 1px solid var(--border-secondary);
@@ -353,16 +367,16 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 /* store carousels (699:26700) */
 .stores { display: flex; flex-direction: column; margin-top: 16px; }
-.store { position: relative; padding: 8px 0 16px; background: var(--vignette), var(--surface-primary); }
+.store { position: relative; padding: 8px 0 16px; background: var(--surface-primary); }
 .store.terra { background: #f6f4f1; padding-top: 0; }
 .meta .fee.free, .meta .fee.free i { color: #007f46; }
 .meta .fee.free svg path { fill: #007f46; }
 .store.terra::before {               /* «pattern frame»: the white scallops at the top */
-  content: ""; display: block; height: 3px; background: linear-gradient(rgba(47,43,37,.06), rgba(47,43,37,.06)), #fff;   /* the white sections' vignetted edge */ margin-bottom: 0;
+  content: ""; display: block; height: 3px; background: #fff; margin-bottom: 0;
   -webkit-mask: var(--wave) repeat-x 175.24px -1.56px / 39.52px 4.56px; mask: var(--wave) repeat-x 175.24px -1.56px / 39.52px 4.56px;
 }
 .store.terra::after {                /* the same scallops, mirrored, closing the section */
-  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(rgba(47,43,37,.06), rgba(47,43,37,.06)), #fff;   /* the white sections' vignetted edge */ transform: scaleY(-1);
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #fff; transform: scaleY(-1);
   -webkit-mask: var(--wave) repeat-x 175.24px -1.56px / 39.52px 4.56px; mask: var(--wave) repeat-x 175.24px -1.56px / 39.52px 4.56px;
 }
 .store-head { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 16px 16px 8px; }
@@ -503,6 +517,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 </head>
 <body>
 <div class="device"><main class="phone">
+  <div class="topglass" aria-hidden="true"></div>
   <header class="header">
     <div class="status"><span class="time">19:02</span><svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="73.6026" height="13" viewBox="0 0 73.6026 13" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="System Status Icons"><path id="Wi-Fi Icon" d="M33.0005 2.69984C35.6121 2.69995 38.1239 3.70936 40.0167 5.51942C40.1592 5.65916 40.387 5.6574 40.5274 5.51547L41.8899 4.13235C41.961 4.06036 42.0006 3.96285 42 3.86139C41.9994 3.75994 41.9586 3.6629 41.8867 3.59175C36.9188 -1.19725 29.0814 -1.19725 24.1135 3.59175C24.0415 3.66284 24.0007 3.75985 24 3.86131C23.9993 3.96277 24.0389 4.06031 24.1099 4.13235L25.4728 5.51547C25.6131 5.65762 25.8411 5.65938 25.9835 5.51942C27.8765 3.70924 30.3886 2.69983 33.0005 2.69984ZM33.0005 7.19971C34.4354 7.19962 35.8191 7.73611 36.8828 8.70494C37.0267 8.84243 37.2533 8.83945 37.3935 8.69822L38.7544 7.3151C38.8261 7.24255 38.8658 7.14413 38.8648 7.04186C38.8638 6.9396 38.822 6.84201 38.7489 6.77094C35.5099 3.74028 30.4938 3.74028 27.2548 6.77094C27.1817 6.84201 27.1399 6.93964 27.139 7.04195C27.138 7.14425 27.1779 7.24266 27.2497 7.3151L28.6102 8.69822C28.7505 8.83945 28.9771 8.84243 29.1209 8.70494C30.1839 7.73675 31.5665 7.20031 33.0005 7.19971ZM35.6158 10.5006C35.6886 10.4288 35.7287 10.3299 35.7266 10.2273C35.7245 10.1248 35.6804 10.0276 35.6048 9.95883C34.1014 8.67978 31.8996 8.67978 30.3962 9.95883C30.3205 10.0276 30.2764 10.1247 30.2742 10.2272C30.272 10.3298 30.3121 10.4287 30.3848 10.5006L32.7392 12.8902C32.8082 12.9605 32.9023 13 33.0005 13C33.0987 13 33.1927 12.9605 33.2617 12.8902L35.6158 10.5006Z" fill="black"/><g id="Battery Icon"><path id="Battery Charge" d="M48.9231 3.20513C48.9231 2.49707 49.4971 1.92308 50.2051 1.92308H67.8333C68.5414 1.92308 69.1154 2.49707 69.1154 3.20513V9.29487C69.1154 10.0029 68.5414 10.5769 67.8333 10.5769H50.2051C49.4971 10.5769 48.9231 10.0029 48.9231 9.29487V3.20513Z" fill="black"/><path id="Battery Outline" opacity="0.4" d="M67.833 0C69.6031 0 71.0381 1.43496 71.0381 3.20508V9.29492C71.0381 11.065 69.6031 12.5 67.833 12.5H50.2051C48.435 12.5 47 11.065 47 9.29492V3.20508C47 1.43497 48.435 2.72881e-05 50.2051 0H67.833ZM50.2051 0.961914C48.966 0.961941 47.9619 1.96602 47.9619 3.20508V9.29492C47.9619 10.534 48.966 11.5381 50.2051 11.5381H67.833C69.0721 11.5381 70.0771 10.534 70.0771 9.29492V3.20508C70.0771 1.966 69.0721 0.961914 67.833 0.961914H50.2051ZM72 4.22461C72.9183 4.4419 73.6024 5.26529 73.6025 6.25C73.6025 7.2348 72.9184 8.05803 72 8.27539V4.22461Z" fill="black"/></g><path id="Cellular Signal Icon" d="M2.2002 7.0498C2.80762 7.04991 3.2998 7.54294 3.2998 8.15039V10.9004C3.29959 11.5077 2.80749 11.9999 2.2002 12H1.09961C0.492406 11.9998 0.000210959 11.5076 0 10.9004V8.15039C0 7.54301 0.492276 7.05002 1.09961 7.0498H2.2002ZM7.25 5.40039C7.80215 5.40055 8.25 5.8482 8.25 6.40039V11C8.25 11.5522 7.80215 11.9998 7.25 12H5.94922C5.39716 11.9997 4.9502 11.5521 4.9502 11V6.40039C4.9502 5.84811 5.39791 5.40039 5.9502 5.40039H7.25ZM12.2002 3.2002C12.7523 3.20035 13.2002 3.64801 13.2002 4.2002V11C13.2002 11.5522 12.7523 11.9998 12.2002 12H10.8994C10.3474 11.9997 9.90039 11.5521 9.90039 11V4.2002C9.90039 3.64791 10.3481 3.2002 10.9004 3.2002H12.2002ZM17.1504 1C17.7025 1.00024 18.1504 1.44786 18.1504 2V11C18.1504 11.5521 17.7025 11.9998 17.1504 12H15.8496C15.2975 11.9998 14.8496 11.5522 14.8496 11V2C14.8496 1.44783 15.2975 1.00018 15.8496 1H17.1504Z" fill="black"/></g></svg></div>
     <div class="search-row">
@@ -533,7 +548,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   </div>
   <div class="suggest" aria-live="polite"></div>
   <div class="results">
-    <div class="res-head"><div class="tabs" role="tablist"><span class="tab-bar"></span></div><div class="aisles"></div></div>
+    <div class="tabbar"><div class="tabs" role="tablist"><span class="tab-bar"></span></div></div>
+    <div class="aisles"></div>
     <div class="stores"></div><div class="res-more"></div>
   </div>
   <div class="kb" dir="ltr" aria-hidden="true"><div class="kb-bar"><button class="pred" data-i="0"><span></span></button><span class="kb-sep"></span><button class="pred" data-i="1"><span></span></button><span class="kb-sep"></span><button class="pred" data-i="2"><span></span></button></div><div class="kb-keys"><div class="kb-row"><button class="key" data-k="ض">ض</button><button class="key" data-k="ص">ص</button><button class="key" data-k="ق">ق</button><button class="key" data-k="ف">ف</button><button class="key" data-k="غ">غ</button><button class="key" data-k="ع">ع</button><button class="key" data-k="ه">ه</button><button class="key" data-k="خ">خ</button><button class="key" data-k="ح">ح</button><button class="key" data-k="ج">ج</button><button class="key" data-k="چ">چ</button></div><div class="kb-row"><button class="key" data-k="ش">ش</button><button class="key" data-k="س">س</button><button class="key" data-k="ی">ی</button><button class="key" data-k="ب">ب</button><button class="key" data-k="ل">ل</button><button class="key" data-k="ا">ا</button><button class="key" data-k="ت">ت</button><button class="key" data-k="ن">ن</button><button class="key" data-k="م">م</button><button class="key" data-k="ک">ک</button><button class="key" data-k="گ">گ</button></div><div class="kb-row r3"><div class="grp"><button class="key" data-k="ظ">ظ</button><button class="key" data-k="ط">ط</button><button class="key" data-k="ژ">ژ</button><button class="key" data-k="ز">ز</button><button class="key" data-k="ر">ر</button><button class="key" data-k="ذ">ذ</button><button class="key" data-k="د">د</button><button class="key" data-k="پ">پ</button><button class="key" data-k="و">و</button><button class="key" data-k="ث">ث</button></div><button class="key fn del" data-act="del"><svg width="23" height="17" viewBox="0 0 24 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.2 1.6H20.4A2.4 2.4 0 0 1 22.8 4V14A2.4 2.4 0 0 1 20.4 16.4H8.2L1.4 9Z" stroke="black" stroke-width="1.6" stroke-linejoin="round"/><path d="M11.6 5.6L17.4 12.4M17.4 5.6L11.6 12.4" stroke="black" stroke-width="1.6" stroke-linecap="round"/></svg></button></div><div class="kb-row r4"><button class="key fn w87" data-act="num">۱۲۳</button><button class="key wide" data-act="space">فاصله</button><button class="key zw" data-act="zwnj"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.65 3.5C7.84 3.7 8.16 3.7 8.35 3.5L11.15 0.85C11.46 0.54 11.24 0 10.79 0H5.21C4.76 0 4.54 0.54 4.85 0.85L7.65 3.5Z" fill="black"/><path d="M7.5 5.2C7.5 5.09 7.59 5 7.7 5H8.3C8.41 5 8.5 5.09 8.5 5.2V5.8C8.5 5.91 8.41 6 8.3 6H7.7C7.59 6 7.5 5.91 7.5 5.8V5.2Z" fill="black"/><path d="M7.7 7.5C7.59 7.5 7.5 7.59 7.5 7.7V8.3C7.5 8.41 7.59 8.5 7.7 8.5H8.3C8.41 8.5 8.5 8.41 8.5 8.3V7.7C8.5 7.59 8.41 7.5 8.3 7.5H7.7Z" fill="black"/><path d="M7.5 10.2C7.5 10.09 7.59 10 7.7 10H8.3C8.41 10 8.5 10.09 8.5 10.2V10.8C8.5 10.91 8.41 11 8.3 11H7.7C7.59 11 7.5 10.91 7.5 10.8V10.2Z" fill="black"/><path d="M7.7 12.5C7.59 12.5 7.5 12.59 7.5 12.7V13.3C7.5 13.41 7.59 13.5 7.7 13.5H8.3C8.41 13.5 8.5 13.41 8.5 13.3V12.7C8.5 12.59 8.41 12.5 8.3 12.5H7.7Z" fill="black"/><path d="M7.7 15C7.59 15 7.5 15.09 7.5 15.2V15.8C7.5 15.91 7.59 16 7.7 16H8.3C8.41 16 8.5 15.91 8.5 15.8V15.2C8.5 15.09 8.41 15 8.3 15H7.7Z" fill="black"/></svg></button><button class="key fn w87" data-act="go">برو</button></div></div><div class="kb-home"><div class="kb-sys"><button class="key" data-act="emoji"><svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="13.5" cy="13.5" r="11.6" stroke="#50555C" stroke-width="1.7"/><ellipse cx="9.6" cy="10.6" rx="1.4" ry="2" fill="#50555C"/><ellipse cx="17.4" cy="10.6" rx="1.4" ry="2" fill="#50555C"/><path d="M8.2 15.6C9.3 17.8 11.2 19 13.5 19C15.8 19 17.7 17.8 18.8 15.6" stroke="#50555C" stroke-width="1.7" stroke-linecap="round"/></svg></button><button class="key" data-act="dict"><svg width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="9.6" y="2.2" width="7.8" height="14.6" rx="3.9" stroke="#50555C" stroke-width="1.7"/><path d="M5.9 12.6C5.9 16.8 9.3 20.2 13.5 20.2C17.7 20.2 21.1 16.8 21.1 12.6" stroke="#50555C" stroke-width="1.7" stroke-linecap="round"/><path d="M13.5 20.4V24.6" stroke="#50555C" stroke-width="1.7" stroke-linecap="round"/></svg></button></div><div class="home-ind"></div></div><div class="callout"></div></div>
@@ -708,6 +724,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     field.classList.toggle('has-value', has);
     phone.classList.toggle('typing', has);
     if (has) { if (!was) list.scrollTop = 0; render(animate && was); }
+    edge();
     run(); predict(); placeCaret(true);
   }
   function setQuery(text) {
@@ -989,9 +1006,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     });
     phone.classList.add('show-results');
     res.scrollTop = 0; tabsEl.scrollLeft = 0;
+    edge();
     paint(false);
   }
-  function hideResults() { phone.classList.remove('show-results'); }
+  function hideResults() { phone.classList.remove('show-results'); edge(); }
 
   function inTab(i) { return !R.tab || DATA.shops[DATA.products[i][1]].at === R.tab; }
   function paint(animate) {
@@ -1169,6 +1187,14 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     window.addEventListener('blur', end);
   }
   dragScroll(tabsEl); dragScroll(aislesEl);
+
+  /* ---------------- scroll-edge glass: the top area gets its glass once content passes under it ---------------- */
+  function edge() {
+    var el = phone.classList.contains('show-results') ? document.querySelector('.results')
+           : phone.classList.contains('typing') ? document.querySelector('.suggest') : document.querySelector('.content');
+    phone.classList.toggle('scrolled', el.scrollTop > 1);
+  }
+  ['.content', '.suggest', '.results'].forEach(function (q) { document.querySelector(q).addEventListener('scroll', edge, { passive: true }); });
 
   /* ---------------- start once the Digikala weights are in ---------------- */
   fit();
