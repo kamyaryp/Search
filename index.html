@@ -209,7 +209,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .open .caret.on { opacity: 1; }
 .open .caret.on.idle { animation: breathe 1.06s ease-in-out .5s infinite; }
 @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: .08; } }
-.open .placeholder { transform: translateX(-4px); }
 
 /* the suggestion list */
 .suggest {
@@ -322,14 +321,14 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 /* parent tabs: activity types (699:26679) */
 .tabs {
-  position: relative;
+  position: relative; z-index: 1;                           /* above the divider, so the active bar covers it */
   display: flex; gap: 24px; padding: 12px 16px 0;
   overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
 }
 /* the pinned wrapper carries the divider and the glass (a backdrop-filter on the scrolling row itself doesn't render) */
 .tabbar { position: sticky; top: 0; z-index: 3;            /* under the floating search field (the scroller's padding-top = --hdr offsets sticky) */
-  box-shadow: inset 0 -1px 0 #e8e8e8;                       /* Figma's inside stroke: 52 tall */
-  background-color: transparent; transition: background-color .2s var(--ease-io); }
+}
+.tabbar::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: #e8e8e8; pointer-events: none; }   /* Figma's inside stroke: 52 tall */
 .tab {
   flex: none; height: 40px; display: flex; flex-direction: column; align-items: center;
   font-weight: 500; font-size: 15px; line-height: 24px; color: var(--content-tertiary); white-space: nowrap;
@@ -351,7 +350,12 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   background: rgba(255, 255, 255, .8); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
   opacity: 0; transition: opacity .2s var(--ease-io); }
 .scrolled .topglass { opacity: 1; }
-.scrolled .tabbar { background-color: rgba(255, 255, 255, .8); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+.show-results .topglass { display: none; }
+/* in the results the pinned bar's glass reaches up behind the header, so field and tabs sit on ONE continuous glass */
+.tabbar::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; top: calc(-1 * var(--hdr)); z-index: -1; pointer-events: none;
+  background: rgba(255, 255, 255, .8); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+  opacity: 0; transition: opacity .2s var(--ease-io); }
+.scrolled .tabbar::before { opacity: 1; }
 /* the aisle chips simply scroll away under the pinned tabs */
 .aisle {
   flex: none; height: 44px; padding: 0 7px; border-radius: 999px;
@@ -703,8 +707,19 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
       render(true);
     };
     if (reduced) return done();
+    /* removal: the row slides out toward the trash and fades, then its slot closes (height + the 16 gap) so the
+       rows below glide up with it; the list then re-renders with FLIP for anything that changes section */
     row.style.pointerEvents = 'none';
-    row.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(-16px)' }], { duration: 180, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }).onfinish = done;
+    row.style.overflow = 'hidden';
+    var h = row.offsetHeight;
+    row.querySelectorAll('.ico, .txt').forEach(function (el) {
+      el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateX(-28px)' }],
+        { duration: 240, easing: 'cubic-bezier(.4,0,.6,1)', fill: 'forwards' });
+    });
+    row.querySelector('.del').animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.6) rotate(-12deg)' }],
+      { duration: 200, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
+    row.animate([{ height: h + 'px', marginBottom: '0px' }, { height: '0px', marginBottom: '-16px' }],
+      { duration: 300, delay: 140, easing: 'cubic-bezier(.3,0,.2,1)', fill: 'forwards' }).onfinish = done;
   }
 
   /* ---------------- states: idle · open (keyboard up) · typing (a query) ---------------- */
@@ -807,7 +822,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     if (!custom) return;
     mirror.textContent = input.value;
     var W = input.clientWidth, w = input.value ? mirror.getBoundingClientRect().width / scale : 0;
-    var x = Math.max(0, W - w - 2);
+    /* empty: the caret sits just right of the placeholder (in the gap before the arrow) so it never pushes it */
+    var x = input.value ? Math.max(0, W - w - 2) : W + 1;
     caret.style.transform = 'translateX(' + x.toFixed(2) + 'px)';
     if (typed) {                                       /* solid while typing, then breathe */
       caret.classList.remove('idle');
