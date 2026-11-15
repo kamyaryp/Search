@@ -63,7 +63,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 
 /* ---------- Search Header (686:4867) — 116 tall ---------- */
-.header { flex: none; background: var(--surface-primary); position: relative; z-index: 5; }
+:root { --hdr: 116px; }
+.header { position: absolute; left: 0; right: 0; top: 0; background: none; z-index: 6; pointer-events: none; }
+.header > * { pointer-events: auto; }
 .status {
   height: 44px; padding: 13px 26px;
   display: flex; align-items: center; justify-content: space-between;
@@ -79,11 +81,14 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .search-row { padding: 8px 16px 12px; }
 .field {
   height: 52px; border-radius: 999px;
-  background: var(--surface-secondary);
-  border: 1px solid var(--border-secondary);
+  /* floating glass — the expanded quantity button's recipe (Counter 2:75): white 80 %, blur 5, 1px white stroke, brand-tinted shadows */
+  background: rgba(255, 255, 255, .8);
+  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+  border: 1px solid #fff;
+  box-shadow: 0 8px 20px rgba(104, 16, 29, .12), 0 4px 8px rgba(104, 16, 29, .12), 0 0 14px rgba(255, 255, 255, .5);
   padding: 0 15px;                       /* 16 − the 1px stroke */
   display: flex; align-items: center; gap: 8px;
-  transition: border-color .2s var(--ease-io);
+  position: relative;
 }
 .icon-btn {
   width: 24px; height: 24px; flex: none; display: grid; place-items: center;
@@ -122,7 +127,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* ---------- Search Suggestions Content (657:925) ---------- */
 .content {
   flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
-  padding: 24px 0; display: flex; flex-direction: column; gap: 24px;
+  padding: calc(var(--hdr) + 24px) 0 24px; display: flex; flex-direction: column; gap: 24px;
   scrollbar-width: none;
 }
 .content::-webkit-scrollbar, .rail::-webkit-scrollbar { display: none; }
@@ -209,9 +214,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 /* the suggestion list */
 .suggest {
-  position: absolute; left: 0; right: 0; top: 116px; bottom: 0;
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0;
   overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
-  padding: 24px 0 24px; display: flex; flex-direction: column; gap: 16px;
+  padding: calc(var(--hdr) + 24px) 0 24px; display: flex; flex-direction: column; gap: 16px;
   background: var(--surface-primary);
   opacity: 0; visibility: hidden; transform: translateY(6px);
   transition: opacity .2s var(--ease-io), transform .32s var(--ease-out), visibility 0s .2s;
@@ -305,7 +310,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 /* ================= Search results — Figma 693:5729 ================= */
 .results {
-  position: absolute; left: 0; right: 0; top: 116px; bottom: 0; z-index: 4;
+  position: absolute; left: 0; right: 0; top: 0; bottom: 0; z-index: 4;
+  padding-top: var(--hdr);
   background: var(--surface-primary);
   overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
   opacity: 0; visibility: hidden; transform: translateY(8px);
@@ -348,14 +354,16 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 /* store carousels (699:26700) */
 .stores { display: flex; flex-direction: column; margin-top: 16px; }
-.store { position: relative; padding: 8px 0 16px; background: var(--surface-primary); }
+.store { position: relative; padding: 8px 0 16px; background: var(--vignette), var(--surface-primary); }
 .store.terra { background: #f6f4f1; padding-top: 0; }
+.meta .fee.free, .meta .fee.free i { color: #007f46; }
+.meta .fee.free svg path { fill: #007f46; }
 .store.terra::before {               /* «pattern frame»: the white scallops at the top */
-  content: ""; display: block; height: 3px; background: #fff; margin-bottom: 0;
+  content: ""; display: block; height: 3px; background: linear-gradient(rgba(47,43,37,.06), rgba(47,43,37,.06)), #fff;   /* the white sections' vignetted edge */ margin-bottom: 0;
   -webkit-mask: var(--wave) repeat-x 175.24px -1.56px / 39.52px 4.56px; mask: var(--wave) repeat-x 175.24px -1.56px / 39.52px 4.56px;
 }
 .store.terra::after {                /* the same scallops, mirrored, closing the section */
-  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #fff; transform: scaleY(-1);
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(rgba(47,43,37,.06), rgba(47,43,37,.06)), #fff;   /* the white sections' vignetted edge */ transform: scaleY(-1);
   -webkit-mask: var(--wave) repeat-x 175.24px -1.56px / 39.52px 4.56px; mask: var(--wave) repeat-x 175.24px -1.56px / 39.52px 4.56px;
 }
 .store-head { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 16px 16px 8px; }
@@ -413,42 +421,71 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .was { position: relative; height: 14px; display: flex; align-items: center; font-weight: 400; font-size: 13px; line-height: 20px; color: #999; white-space: nowrap; }
 .was::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(237, 25, 68, .48); transform: translateY(-50%) rotate(-6deg); }
 
-/* Counter, float (2:75): add → added */
-.ctl { position: absolute; right: 8px; bottom: 8px; height: 40px; width: 40px; z-index: 2;
-  transition: width .42s cubic-bezier(.34, 1.36, .5, 1); }
-.ctl.added { width: 112px; }
-.ctl .pill {
-  position: absolute; inset: 0; border-radius: 999px;
-  box-shadow: 0 0 14px rgba(255,255,255,.5), 0 4px 8px rgba(104,16,29,.12), 0 8px 20px rgba(104,16,29,.12);
-  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
-  background: linear-gradient(180deg, rgba(252,181,181,.3), rgba(254,244,244,.3)), rgba(255,255,255,.8);
-  border: .5px solid rgba(104,16,29,.16);
-  transition: background .3s, border-color .3s;
+/* Counter, float (Components 2:75) — rebuilt from the design-system Counter (storybook ProductCard › Interactive):
+   add → added (expand) → idle 1.5 s → collapsed (red disc with the quantity); tap collapsed → expands again */
+:root {
+  --m-smart-d: .4s;
+  --m-smart-e: linear(0, .0181, .0653, .1325, .2121, .2982, .3862, .4726, .5547, .6308, .7, .7615, .8153, .8616, .9006, .9329, .9592, .98, .9962, 1.0083, 1.0169, 1.0228, 1.0263, 1.028, 1.0283, 1.0276, 1.0261, 1.0241, 1.0218, 1.0193, 1.0168, 1.0144, 1.0121, 1.01, 1.0081, 1.0064, 1.0049, 1.0036, 1.0026, 1.0017, 1);
+  --m-expand-d: .6s;
+  --m-expand-e: linear(0, .0282, .1013, .2037, .3224, .4467, .5685, .6819, .783, .8696, .9407, .9966, 1.0382, 1.0669, 1.0846, 1.0932, 1.0945, 1.0905, 1.0826, 1.0723, 1.0608, 1.049, 1.0377, 1.0272, 1.018, 1.0102, 1.0039, .999, .9955, .9931, .9917, .9911, .9911, .9916, .9924, .9935, .9946, .9957, .9967, .9977, .9985, .9992, .9998, 1.0002, 1.0005, 1.0007, 1.0008, 1.0009, 1);
+  --m-press-d: .4s; --m-press-e: cubic-bezier(.34, 1.3, .64, 1);
 }
-.ctl .pill::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 4px 8px rgba(237,25,68,.08); transition: opacity .3s; }
-.ctl.added .pill { background: rgba(255,255,255,.8); border: 1px solid #fff; }
-.ctl.added .pill::after { opacity: 0; }
-.ctl button { position: absolute; top: 0; height: 40px; display: grid; place-items: center; }
-.ctl .plus { right: 0; width: 40px; }
-.ctl .plus i { position: absolute; width: 32px; height: 32px; border-radius: 999px; background: #ed1944; transform: scale(0); opacity: 0;
-  transition: transform .4s cubic-bezier(.34,1.56,.5,1), opacity .2s; }
-.ctl .plus svg { position: relative; display: block; transition: transform .25s var(--ease-out); }
-.ctl .plus svg path { transition: fill .25s; }
-.ctl.added .plus { right: 0; width: 40px; }
-.ctl.added .plus i { transform: scale(1); opacity: 1; }
-.ctl.added .plus svg path { fill: #fff; }
-.ctl .minus { left: 0; width: 40px; opacity: 0; pointer-events: none; transition: opacity .2s; }
-.ctl .qty { position: absolute; left: 36px; right: 40px; top: 4px; height: 32px; text-align: center; font-weight: 500; font-size: 17px; line-height: 32px; color: #ed1944;
-  opacity: 0; pointer-events: none; transition: opacity .2s; overflow: hidden; }
-.ctl.added .minus, .ctl.added .qty { opacity: 1; pointer-events: auto; transition-delay: .08s; }
-.ctl .qty span { display: block; }
-.ctl button:active svg { transform: scale(.82); }
-.ctl.bump .plus i { animation: bump .4s cubic-bezier(.34,1.56,.5,1); }
-@keyframes bump { 0% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.ctl { position: absolute; right: 8px; bottom: 8px; height: 40px; width: 40px; z-index: 2;
+  --t-d: var(--m-smart-d); --t-e: var(--m-smart-e);
+  transition: width var(--t-d) var(--t-e); }
+.ctl[data-s="added"], .ctl[data-s="max"] { width: 112px; --t-d: var(--m-expand-d); --t-e: var(--m-expand-e); }   /* full width: 8 in from each side */
+.ctl > button { position: absolute; top: -8px; width: 56px; height: 56px; z-index: 1; border-radius: 999px; cursor: pointer; }
+.ctl .inc { right: -8px; }
+.ctl .dec { left: -8px; }
+.ctl:not([data-s="added"]):not([data-s="max"]) .dec { visibility: hidden; pointer-events: none; }
+.ctl .surf { position: absolute; inset: 0; border-radius: 999px; pointer-events: none; background: rgba(255,255,255,.8);
+  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+  box-shadow: 0 8px 20px rgba(104,16,29,.12), 0 4px 8px rgba(104,16,29,.12), 0 0 14px rgba(255,255,255,.5); }
+.ctl[data-s="add"] .surf { box-shadow: 0 8px 20px rgba(104,16,29,.12), inset 0 4px 8px rgba(237,25,68,.08), 0 4px 8px rgba(104,16,29,.12), 0 0 14px rgba(255,255,255,.5); }
+.ctl .glass { position: absolute; inset: 0; border-radius: 999px; pointer-events: none; background: linear-gradient(rgba(252,181,181,.3), rgba(254,244,244,.3));
+  opacity: 0; transition: opacity var(--m-smart-d) var(--m-smart-e); }
+.ctl[data-s="add"] .glass { opacity: 1; }
+.ctl .clip { position: absolute; inset: 0; overflow: hidden; border-radius: 999px; pointer-events: none; }
+.ctl .row2 { position: absolute; top: 0; right: 0; height: 40px; width: 100%; min-width: 102px; padding: 0 4px 0 10px;
+  display: flex; align-items: center; justify-content: space-between; direction: rtl; }
+.ctl .disc { position: relative; width: 32px; height: 32px; flex: none; transition: transform var(--m-press-d) var(--m-press-e); }
+.ctl .inc:active ~ .clip .disc { transform: scale(.9); }
+.ctl .disc-bg { position: absolute; inset: 0; border-radius: 999px; background: #ed1944; transform: scale(0);
+  transition: transform var(--t-d) var(--t-e), background-color var(--t-d) var(--t-e); }
+.ctl[data-s="added"] .disc-bg { transform: scale(1); }
+.ctl[data-s="max"] .disc-bg { transform: scale(1); background: rgba(237,25,68,.2); }
+.ctl[data-s="collapsed"] .disc-bg { transform: scale(1.25); }
+.ctl .disc-in { position: absolute; inset: 0; overflow: hidden; border-radius: 999px; }
+.ctl .disc-in > span { position: absolute; inset: 0; display: grid; place-items: center; transition: color var(--m-smart-d) var(--m-smart-e), transform var(--m-smart-d) var(--m-smart-e), opacity var(--m-smart-d) var(--m-smart-e); }
+.ctl .p-ico { color: #ed1944; }
+.ctl .p-ico svg path { fill: currentColor; }
+.ctl[data-s="added"] .p-ico, .ctl[data-s="max"] .p-ico { color: #fff; }
+.ctl[data-s="collapsed"] .p-ico { color: #fff; transform: translateY(-100%); opacity: 0; }
+.ctl .p-num { color: #fff; font-weight: 700; font-size: 19px; line-height: 30px; transform: translateY(100%); opacity: 0; }
+.ctl[data-s="collapsed"] .p-num { transform: none; opacity: 1; }
+.ctl .qty, .ctl .m-ico { position: relative; opacity: 0; transform: translateX(12px);
+  transition: opacity var(--t-d) var(--t-e), transform var(--t-d) var(--t-e); }
+.ctl[data-s="added"] .qty, .ctl[data-s="added"] .m-ico, .ctl[data-s="max"] .qty, .ctl[data-s="max"] .m-ico { opacity: 1; transform: none; }
+.ctl .qty { height: 32px; min-width: 20px; overflow: hidden; text-align: center; font-weight: 500; font-size: 17px; line-height: 32px; color: #ed1944; }
+.ctl .qty b { display: block; font-weight: 500; white-space: nowrap; }
+.ctl .qty b.out { position: absolute; inset: 0; }
+.ctl .m-ico { width: 24px; height: 24px; flex: none; }
+.ctl .m-ico svg { display: block; }
+.ctl .edge { position: absolute; inset: 0; border-radius: 999px; pointer-events: none; border: 1px solid #fff;
+  transition: border-color var(--m-smart-d) var(--m-smart-e), border-width var(--m-smart-d) var(--m-smart-e); }
+.ctl[data-s="add"] .edge { border: .5px solid rgba(104,16,29,.16); }
+.ctl[data-s="collapsed"] .edge { border-color: transparent; }
+@keyframes roll-in-up { 0% { opacity: 0; transform: translateY(100%); } }
+@keyframes roll-out-up { to { opacity: 0; visibility: hidden; transform: translateY(-100%); } }
+@keyframes roll-in-down { 0% { opacity: 0; transform: translateY(-100%); } }
+@keyframes roll-out-down { to { opacity: 0; visibility: hidden; transform: translateY(100%); } }
+.ctl .qty b.in-up { animation: roll-in-up var(--m-smart-d) var(--m-smart-e) both; }
+.ctl .qty b.out-up { animation: roll-out-up var(--m-smart-d) var(--m-smart-e) both; }
+.ctl .qty b.in-down { animation: roll-in-down var(--m-smart-d) var(--m-smart-e) both; }
+.ctl .qty b.out-down { animation: roll-out-down var(--m-smart-d) var(--m-smart-e) both; }
 
 .res-empty { padding: 48px 32px; text-align: center; color: var(--content-tertiary); font-weight: 500; font-size: 15px; line-height: 28px; }
 .res-more { height: 40px; }
-@media (max-width: 430px) { .results { top: 76px; } }
 
 @media (prefers-reduced-motion: reduce) {
   .enter .chip, .enter .section { animation: none; }
@@ -462,8 +499,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .device { width: 100%; height: 100%; }
   .phone { width: 100%; height: 100%; transform: none; border-radius: 0; }
 }
-@media (max-width: 430px) { .status { display: none; } .search-row { padding-top: 12px; } }
-@media (max-width: 430px) { .suggest { top: 76px; } }
+@media (max-width: 430px) { .status { display: none; } .search-row { padding-top: 12px; } :root { --hdr: 76px; } }
 :root{--hl-tile:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNCIgaGVpZ2h0PSI1IiB2aWV3Qm94PSIwIDAgMTQgNSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+PHBhdGggZD0iTTAgMEMxLjc5OTg2IDAgMi43ODA4IDAuMzIxNzIgMy42NzQ4IDAuNTc3MTQ4QzQuNDA3NjYgMC43ODY1MjggNS4yMjA3NCAxIDcgMUM4Ljc3OTI2IDEgOS41OTIzNCAwLjc4NjUyOCAxMC4zMjUyIDAuNTc3MTQ4QzExLjIxOTIgMC4zMjE3MiAxMi4yMDAxIDAgMTQgMFY0QzEyLjggNCAxMi4yODA2IDQuMTc4MzQgMTEuNDI0OCA0LjQyMjg1QzEwLjQwNzggNC43MTM0NCA5LjIyMDQzIDUgNyA1QzQuNzc5NTcgNSAzLjU5MjI0IDQuNzEzNDQgMi41NzUyIDQuNDIyODVDMS43MTk0MyA0LjE3ODM0IDEuMTk5OTYgNCAwIDRWMFoiLz48L3N2Zz4=);--wave:url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNiIgaGVpZ2h0PSIzLjAwMDMxIiB2aWV3Qm94PSIwIDAgMjYgMy4wMDAzMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+PHBhdGggZD0iTTI2IDBWMS4wMDAxOUMyMCAxLjAwMDE5IDE5IDMuMDAwMzEgMTMgMy4wMDAzMUM3IDMuMDAwMzEgNiAxLjAwMDE5IDAgMS4wMDAxOVYwSDI2WiIvPjwvc3ZnPg==);--hl-fill:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEEAAAAFCAYAAAAaPoE/AAAACXBIWXMAAAAnAAAAJwEqCZFPAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAAZFJREFUeAF1U1tSwzAMXIkMj/zBH9doOQb3PwMzMPzRZ2qhtaLYfWkmsSXvrlZOK9+2fh8BjFD7waRcPcWv77m+4ngSvAjrGxThkxgG850/bxhK7p99P+I6mgaj6bDGNXXYmxo9xrC1LZ7ck9q49KZm8BO3da5VTPTiGlzO0DzkfM+ey5etPnEnJogNMIlsqJVWV51QyoAHmbDxfJQ4J84kzpLLePD9yW5pTjh47UV5frv3ZYTWdY3Beu7FQj/8hm4p0Zna4XX4Az5wNwx7fzvbCiahSlnqp7rbu6zi0XytjZVtZo5zlyHUzZWaG45VD5KX6vxFL/Lawxwn5aav092azvtyNcdyXnvvEVdC/HAAVqiGxKHm71xhmIeIasoFUv1d3Ghy22lipMurqvV9vDk/ifa48xB0FuqlMBH+RyBaGscaQbr+7Ti8poZIcxW0YQesDTlz0xSnmlNz7WtzTzdEveLK+bNVerRzbw0bXJHeYjfgxRWYF5WCNvvrML1HLD3jA4bnGTXzGj6w6sbpCdXTP5/H88lBr9IDAAAAAElFTkSuQmCC)}</style>
 </head>
 <body>
@@ -471,7 +507,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   <header class="header">
     <div class="status"><span class="time">19:02</span><svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="73.6026" height="13" viewBox="0 0 73.6026 13" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="System Status Icons"><path id="Wi-Fi Icon" d="M33.0005 2.69984C35.6121 2.69995 38.1239 3.70936 40.0167 5.51942C40.1592 5.65916 40.387 5.6574 40.5274 5.51547L41.8899 4.13235C41.961 4.06036 42.0006 3.96285 42 3.86139C41.9994 3.75994 41.9586 3.6629 41.8867 3.59175C36.9188 -1.19725 29.0814 -1.19725 24.1135 3.59175C24.0415 3.66284 24.0007 3.75985 24 3.86131C23.9993 3.96277 24.0389 4.06031 24.1099 4.13235L25.4728 5.51547C25.6131 5.65762 25.8411 5.65938 25.9835 5.51942C27.8765 3.70924 30.3886 2.69983 33.0005 2.69984ZM33.0005 7.19971C34.4354 7.19962 35.8191 7.73611 36.8828 8.70494C37.0267 8.84243 37.2533 8.83945 37.3935 8.69822L38.7544 7.3151C38.8261 7.24255 38.8658 7.14413 38.8648 7.04186C38.8638 6.9396 38.822 6.84201 38.7489 6.77094C35.5099 3.74028 30.4938 3.74028 27.2548 6.77094C27.1817 6.84201 27.1399 6.93964 27.139 7.04195C27.138 7.14425 27.1779 7.24266 27.2497 7.3151L28.6102 8.69822C28.7505 8.83945 28.9771 8.84243 29.1209 8.70494C30.1839 7.73675 31.5665 7.20031 33.0005 7.19971ZM35.6158 10.5006C35.6886 10.4288 35.7287 10.3299 35.7266 10.2273C35.7245 10.1248 35.6804 10.0276 35.6048 9.95883C34.1014 8.67978 31.8996 8.67978 30.3962 9.95883C30.3205 10.0276 30.2764 10.1247 30.2742 10.2272C30.272 10.3298 30.3121 10.4287 30.3848 10.5006L32.7392 12.8902C32.8082 12.9605 32.9023 13 33.0005 13C33.0987 13 33.1927 12.9605 33.2617 12.8902L35.6158 10.5006Z" fill="black"/><g id="Battery Icon"><path id="Battery Charge" d="M48.9231 3.20513C48.9231 2.49707 49.4971 1.92308 50.2051 1.92308H67.8333C68.5414 1.92308 69.1154 2.49707 69.1154 3.20513V9.29487C69.1154 10.0029 68.5414 10.5769 67.8333 10.5769H50.2051C49.4971 10.5769 48.9231 10.0029 48.9231 9.29487V3.20513Z" fill="black"/><path id="Battery Outline" opacity="0.4" d="M67.833 0C69.6031 0 71.0381 1.43496 71.0381 3.20508V9.29492C71.0381 11.065 69.6031 12.5 67.833 12.5H50.2051C48.435 12.5 47 11.065 47 9.29492V3.20508C47 1.43497 48.435 2.72881e-05 50.2051 0H67.833ZM50.2051 0.961914C48.966 0.961941 47.9619 1.96602 47.9619 3.20508V9.29492C47.9619 10.534 48.966 11.5381 50.2051 11.5381H67.833C69.0721 11.5381 70.0771 10.534 70.0771 9.29492V3.20508C70.0771 1.966 69.0721 0.961914 67.833 0.961914H50.2051ZM72 4.22461C72.9183 4.4419 73.6024 5.26529 73.6025 6.25C73.6025 7.2348 72.9184 8.05803 72 8.27539V4.22461Z" fill="black"/></g><path id="Cellular Signal Icon" d="M2.2002 7.0498C2.80762 7.04991 3.2998 7.54294 3.2998 8.15039V10.9004C3.29959 11.5077 2.80749 11.9999 2.2002 12H1.09961C0.492406 11.9998 0.000210959 11.5076 0 10.9004V8.15039C0 7.54301 0.492276 7.05002 1.09961 7.0498H2.2002ZM7.25 5.40039C7.80215 5.40055 8.25 5.8482 8.25 6.40039V11C8.25 11.5522 7.80215 11.9998 7.25 12H5.94922C5.39716 11.9997 4.9502 11.5521 4.9502 11V6.40039C4.9502 5.84811 5.39791 5.40039 5.9502 5.40039H7.25ZM12.2002 3.2002C12.7523 3.20035 13.2002 3.64801 13.2002 4.2002V11C13.2002 11.5522 12.7523 11.9998 12.2002 12H10.8994C10.3474 11.9997 9.90039 11.5521 9.90039 11V4.2002C9.90039 3.64791 10.3481 3.2002 10.9004 3.2002H12.2002ZM17.1504 1C17.7025 1.00024 18.1504 1.44786 18.1504 2V11C18.1504 11.5521 17.7025 11.9998 17.1504 12H15.8496C15.2975 11.9998 14.8496 11.5522 14.8496 11V2C14.8496 1.44783 15.2975 1.00018 15.8496 1H17.1504Z" fill="black"/></g></svg></div>
     <div class="search-row">
-      <div class="field lit">
+      <div class="field">
         <button class="icon-btn" id="back" aria-label="بازگشت"><svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="Search Icon"><path id="Search Glyph" d="M14.16 18.735L20.21 12.705C20.39 12.525 20.5 12.275 20.5 11.995C20.5 11.715 20.39 11.465 20.21 11.285L14.16 5.265C13.77 4.875 13.14 4.875 12.75 5.265C12.36 5.655 12.36 6.295 12.75 6.675L17.08 10.995H4.5C3.95 10.995 3.5 11.445 3.5 11.995C3.5 12.545 3.95 12.995 4.5 12.995H17.08L12.75 17.315C12.55 17.515 12.46 17.765 12.46 18.025C12.46 18.285 12.56 18.535 12.75 18.735C13.14 19.125 13.77 19.125 14.17 18.735H14.16Z" fill="#525252"/></g></svg></button>
         <label class="query">
           <span class="placeholder" aria-hidden="true">جستجوی <span class="ticker"><span class="ticker-track"><span>شیر کم‌چرب</span><span>پنیر</span><span>تن‌ماهی</span><span>روغن سرخ‌کردنی</span><span>بستنی</span><span>شیر کم‌چرب</span></span></span></span>
@@ -703,6 +739,9 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   }
 
   input.addEventListener('input', function () { hideResults(); sync(true); });
+  phone.addEventListener('pointerdown', function (e) {
+    if (open && !e.target.closest('.field, .kb')) setOpen(false);
+  });
   input.addEventListener('focus', function () { setOpen(true); });
   input.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { e.preventDefault(); submit(); }
@@ -1011,7 +1050,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     el.innerHTML =
       '<div class="store-head"><div class="store-ava">' + logo + '</div><div class="store-info"><h3></h3><div class="meta">' +
         '<span>' + ICONS.stopwatch + fa(s.eta) + ' دقیقه</span><span class="sep"></span>' +
-        '<span class="fee"><span class="flip">' + ICONS.scooter + '</span><i>' + (s.fee ? money(s.fee) + ICONS.tomanS : 'رایگان') + '</i></span><span class="sep"></span>' +
+        '<span class="fee' + (s.fee ? '' : ' free') + '"><span class="flip">' + ICONS.scooter + '</span><i>' + (s.fee ? money(s.fee) + ICONS.tomanS : 'رایگان') + '</i></span><span class="sep"></span>' +
         '<span>' + ICONS.star + '<b>' + fa(s.r) + '</b><bdi dir="ltr">(+' + fa(String(s.rc).replace('+', '')) + ')</bdi></span>' +
       '</div></div></div><div class="cards"></div>';
     el.querySelector('h3').textContent = fa(s.t);
@@ -1028,10 +1067,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     c.innerHTML =
       '<div class="media"><div class="pthumb">' + (IMG[p[6]] ? '<img alt="" src="' + IMG[p[6]] + '">' : '') + '</div>' +
         (p[5] ? '<span class="badge">-' + fa(p[5]) + ' ٪</span>' : '') +
-        '<div class="ctl' + (q ? ' added' : '') + '"><span class="pill"></span>' +
-          '<button class="minus" aria-label="کم کردن">' + ICONS.minus + '</button>' +
-          '<span class="qty"><span>' + fa(q || 1) + '</span></span>' +
-          '<button class="plus" aria-label="افزودن به سبد"><i></i>' + ICONS.add + '</button></div></div>' +
+        ctlHTML(q) + '</div>' +
       '<div class="details"><p class="title"></p><div class="price">' +
         '<div class="now"><span class="amt">' + money(p[3]) + ICONS.toman + '</span><span class="hl"></span></div>' +
         (p[4] > p[3] ? '<span class="was">' + money(p[4]) + '</span>' : '') +
@@ -1040,30 +1076,60 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
     return c;
   }
 
-  /* counter: add → added (width spring, red disc pops, plus turns white); − back to add at zero */
-  storesEl.addEventListener('click', function (e) {
-    var b = e.target.closest('.ctl button');
-    if (!b) return;
-    var card = b.closest('.card'), i = +card.dataset.i, ctl = card.querySelector('.ctl');
-    var q = CART[i] || 0;
-    q = b.classList.contains('plus') ? q + 1 : Math.max(0, q - 1);
-    CART[i] = q;
-    document.querySelectorAll('.card[data-i="' + i + '"] .ctl').forEach(function (c) { setQty(c, q); });
-  });
-  function setQty(ctl, q) {
-    var was = ctl.classList.contains('added');
-    ctl.classList.toggle('added', q > 0);
-    if (!q) return;
-    var span = ctl.querySelector('.qty span');
-    var old = span.textContent, next = fa(q);
-    if (old === next) return;
-    span.textContent = next;
-    if (was && !reduced) {
-      var up = q > (+old.replace(/[۰-۹]/g, function (d) { return FA.indexOf(d); }) || 0);
-      span.animate([{ transform: 'translateY(' + (up ? 14 : -14) + 'px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.25,.8,.3,1)' });
-      ctl.classList.remove('bump'); void ctl.offsetWidth; ctl.classList.add('bump');
-    }
+  /* ---- Counter (design-system Counter, float): add → added → (idle 1.5 s) → collapsed ----
+     add: glass circle with the red plus. Tap → added: the pill expands (0.6 s expand spring) to «− qty +»,
+     the red disc grows behind a white plus. After 1.5 s without a tap it collapses (0.4 s smart-animate)
+     into a red 40 disc showing the quantity. Tap the collapsed disc → expands again. − to zero → add. */
+  var IDLE = 1500, MAX = 10;
+  function ctlState(q, open) { return !q ? 'add' : open ? (q >= MAX ? 'max' : 'added') : 'collapsed'; }
+  function ctlHTML(q) {
+    var s = ctlState(q, false);
+    return '<div class="ctl" data-s="' + s + '">' +
+      '<button class="inc" aria-label="' + (q ? 'تعداد: ' + fa(q) + ' — ویرایش' : 'افزودن به سبد') + '"></button>' +
+      '<button class="dec" aria-label="کم کردن"></button>' +
+      '<span class="surf"></span><span class="glass"></span>' +
+      '<span class="clip"><span class="row2">' +
+        '<span class="disc"><span class="disc-bg"></span><span class="disc-in">' +
+          '<span class="p-ico">' + ICONS.add + '</span><span class="p-num">' + fa(q || 1) + '</span></span></span>' +
+        '<span class="qty"><b>' + fa(q || 1) + '</b></span>' +
+        '<span class="m-ico">' + ICONS.minus + '</span>' +
+      '</span></span><span class="edge"></span></div>';
   }
+  function setCtl(ctl, q, open, from) {
+    var s = ctlState(q, open);
+    ctl.dataset.s = s;
+    ctl.querySelector('.inc').setAttribute('aria-label', q ? 'تعداد: ' + fa(q) + ' — ویرایش' : 'افزودن به سبد');
+    if (q) ctl.querySelector('.p-num').textContent = fa(q);
+    var box = ctl.querySelector('.qty');
+    if (!q) return;
+    if (from && from !== q && !reduced) {          /* roll the number: old out, new in */
+      var dir = q > from ? 'up' : 'down';
+      box.innerHTML = '<b class="out out-' + dir + '">' + fa(from) + '</b><b class="in-' + dir + '">' + fa(q) + '</b>';
+    } else box.innerHTML = '<b>' + fa(q) + '</b>';
+  }
+  function arm(ctl) {
+    clearTimeout(ctl._t);
+    ctl._t = setTimeout(function () {
+      var i = +ctl.closest('.card').dataset.i;
+      if (CART[i]) setCtl(ctl, CART[i], false);
+    }, IDLE);
+  }
+  storesEl.addEventListener('click', function (e) {
+    var b = e.target.closest('.ctl > button');
+    if (!b) return;
+    var ctl = b.parentNode, card = ctl.closest('.card'), i = +card.dataset.i;
+    var q = CART[i] || 0, s = ctl.dataset.s, next = q;
+    if (b.classList.contains('inc')) {
+      if (s === 'collapsed') { setCtl(ctl, q, true); arm(ctl); return; }   /* just expand */
+      if (s === 'max') return;
+      next = q + 1;
+    } else next = Math.max(0, q - 1);
+    CART[i] = next;
+    setCtl(ctl, next, next > 0, q);
+    if (next) arm(ctl); else clearTimeout(ctl._t);
+    /* the same product in other carousels follows, closed */
+    document.querySelectorAll('.card[data-i="' + i + '"] .ctl').forEach(function (c) { if (c !== ctl) setCtl(c, next, false); });
+  });
 
   tabsEl.addEventListener('click', function (e) {
     var t = e.target.closest('.tab');
